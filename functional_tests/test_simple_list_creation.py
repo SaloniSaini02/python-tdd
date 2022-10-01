@@ -7,31 +7,11 @@ from selenium.common.exceptions import WebDriverException
 import time
 import os
 import unittest
+from .base import FunctionalTest
 
-MAX_WAIT = 10
-class NewVisitorTest(StaticLiveServerTestCase):
-    def setUp(self) -> None:
-        self.browser = webdriver.Firefox()
-        staging_server = os.environ.get("STAGING_SERVER")
-        if staging_server:
-            self.live_server_url = 'http://' + staging_server
-            
-    def tearDown(self) -> None:
-       self.browser.quit()
+
+class NewVisitorTest(FunctionalTest):
     
-    def wait_for_row_in_list_table(self, row_text):
-        start_time = time.time()
-        while True:
-            try: 
-                table = self.browser.find_element("id", "id_list_table")
-                rows = table.find_elements("tag name", "tr")
-                self.assertIn(row_text, [row.text for row in rows])
-                return
-            except (AssertionError, WebDriverException) as e:
-                if (time.time() - start_time) > MAX_WAIT:
-                    raise e
-                time.sleep(0.5)
-
     def test_can_start_a_list_for_one_user(self):
 
         #Edith has heard about a cool to do app. She goes 
@@ -115,24 +95,6 @@ class NewVisitorTest(StaticLiveServerTestCase):
         self.assertIn('Buy milk', page_text)
 
         # Satisfied they both go back to sleep
-
-    def test_layout_and_styling(self):
-        # Edith goes to the home page
-        self.browser.get(self.live_server_url)
-        self.browser.set_window_size(1024, 768)
-
-        # She notices the input box is nicely centered 
-
-        inputbox = self.browser.find_element("id", "id_new_item")
-        self.assertAlmostEqual(inputbox.location["x"] + inputbox.size['width']/2, 512, delta=10)
-
-        ## She starts a new list and sees the input is nicely centered there as well. 
-        inputbox.send_keys("testing")
-        inputbox.send_keys(Keys.ENTER)
-        self.wait_for_row_in_list_table("1: testing")
-        inputbox = self.browser.find_element("id", "id_new_item")
-        self.assertAlmostEqual(inputbox.location["x"] + inputbox.size['width']/2, 512, delta=10)
-
 
 if __name__ == "__main__":
     unittest.main(warnings="ignore")
